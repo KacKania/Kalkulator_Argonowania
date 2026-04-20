@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parametry Procesowe Argonowania</title>
+    <title>Modelowanie Fizyczne - Argonowanie</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Program do obliczeń parametrów procesowych argonowania</h1>
-        <p class="subtitle">Modelowanie fizyczne procesów metalurgicznych (Kryterium Froude'a)</p>
+        <h1>Laboratorium: Modelowanie fizyczne reaktorów metalurgicznych</h1>
+        <p class="subtitle">Obliczanie parametrów i rejestracja danych z modelu wodnego kadzi</p>
 
         <div class="grid-layout">
             <div class="panel section-blue">
-                <h3>Właściwości cieczy</h3>
+                <h3>1. Właściwości reaktora rzeczywistego</h3>
                 <div class="input-group">
                     <label>Masa Stali</label>
-                    <input type="number" id="masa" placeholder="np. 100">
+                    <input type="number" id="masa" placeholder="np. 100000">
                     <span class="unit">kg</span>
                 </div>
                 <div class="input-group">
@@ -26,13 +26,13 @@
                 </div>
                 <div class="input-group result-group">
                     <label>Objętość Stali</label>
-                    <input type="text" id="objetosc-stali-1" readonly>
+                    <input type="text" id="objetosc-stali" readonly>
                     <span class="unit">m³</span>
                 </div>
             </div>
 
             <div class="panel section-orange">
-                <h3>Geometria kadzi</h3>
+                <h3>2. Geometria reaktora / modelu</h3>
                 <div class="input-group">
                     <label>Średnica górna (D)</label>
                     <input type="number" id="D" placeholder="np. 2.5">
@@ -49,44 +49,67 @@
                     <span class="unit">m</span>
                 </div>
                 <div class="input-group result-group">
-                    <label>Objętość Stali</label>
-                    <input type="text" id="objetosc-stali-2" readonly>
+                    <label>Objętość z wymiarów</label>
+                    <input type="text" id="objetosc-geometria" readonly>
                     <span class="unit">m³</span>
                 </div>
             </div>
 
             <div class="panel section-green">
-                <h3>Parametry podobieństwa</h3>
+                <h3>3. Obliczenia strumienia (Kryt. Froude'a)</h3>
                 <div class="input-group">
-                    <label>Stała (C)</label>
-                    <input type="number" id="C" placeholder="Wartość C">
+                    <label>Strumień reaktora (Q)</label>
+                    <input type="number" id="Q" placeholder="Wprowadź Q">
+                    <span class="unit">m³/s</span>
                 </div>
                 <div class="input-group">
-                    <label>Stała modelu (C')</label>
-                    <input type="number" id="C_prime" placeholder="Wartość C'">
+                    <label>Stała modelu (C') / Stała (C)</label>
+                    <input type="number" id="C_ratio" placeholder="Stosunek C'/C">
+                    <span class="unit">-</span>
                 </div>
                 <div class="input-group">
                     <label>Współcz. skali (S<sub>L</sub>)</label>
-                    <input type="number" id="SL" placeholder="Wartość Skali">
+                    <input type="number" id="SL" placeholder="np. 0.2">
+                    <span class="unit">-</span>
+                </div>
+                <div class="input-group result-group highlight">
+                    <label>Strumień gazu dla modelu (Q')</label>
+                    <input type="text" id="Q_prime" readonly>
+                    <span class="unit">m³/s</span>
                 </div>
             </div>
 
-            <div class="panel section-grey">
-                <h3>Strumień gazu</h3>
+            <div class="panel section-purple">
+                <h3>4. Parametry stanowiska badawczego</h3>
                 <div class="input-group">
-                    <label>Strumień gazu (Q)</label>
-                    <input type="number" id="Q" placeholder="Wartość Q">
-                    <select id="jednostka-Q"><option>m³/s</option><option>dm³/min</option></select>
+                    <label>Typ kształtki w dnie</label>
+                    <select id="typ-ksztaltki" class="wide-select">
+                        <option value="porowata">Kształtka typu porowatego</option>
+                        <option value="szczelinowa">Kształtka typu szczelinowego</option>
+                    </select>
                 </div>
-                <div class="input-group result-group highlight">
-                    <label>Strumień w modelu (Q')</label>
-                    <input type="text" id="Q_prime" readonly>
-                    <span class="unit" id="jednostka-Q-wynik">m³/s</span>
+                <div class="input-group">
+                    <label>Objętość znacznika (KMnO4 + NaCl)</label>
+                    <input type="number" id="znacznik" placeholder="np. 50">
+                    <span class="unit">ml</span>
+                </div>
+                <div class="input-group">
+                    <label>Zarejestrowany czas wymieszania (RTD)</label>
+                    <input type="number" id="czas-wymieszania" placeholder="Z pomiaru">
+                    <span class="unit">s</span>
                 </div>
             </div>
         </div>
 
-        <button class="calc-btn" onclick="obliczWszystko()">Oblicz wszystko</button>
+        <div class="buttons-container">
+            <button class="calc-btn" onclick="obliczWszystko()">1. Wykonaj obliczenia</button>
+            <button class="report-btn" onclick="generujSprawozdanie()">2. Generuj dane do sprawozdania</button>
+        </div>
+
+        <div id="raport-container" class="hidden">
+            <h3>Dane do sprawozdania:</h3>
+            <textarea id="raport-text" readonly rows="8"></textarea>
+        </div>
     </div>
 
     <script src="script.js"></script>

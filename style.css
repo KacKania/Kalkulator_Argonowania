@@ -14,7 +14,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 900px;
+    max-width: 950px;
     background: #fff;
     padding: 30px;
     border-radius: 12px;
@@ -25,20 +25,20 @@ h1 {
     text-align: center;
     color: #2c3e50;
     margin-bottom: 5px;
-    font-size: 22px;
+    font-size: 24px;
 }
 
 .subtitle {
     text-align: center;
     color: #7f8c8d;
     margin-bottom: 30px;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .grid-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 25px;
 }
 
 .panel {
@@ -46,23 +46,22 @@ h1 {
     border-radius: 8px;
     border-top: 5px solid #ccc;
     background-color: #fafafa;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .panel h3 {
     margin-top: 0;
     font-size: 16px;
     color: #444;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e0e0e0;
     padding-bottom: 10px;
     margin-bottom: 15px;
 }
 
-/* Kolory przypisane do schematu z PDF */
 .section-blue { border-top-color: #3498db; }
 .section-orange { border-top-color: #e67e22; }
 .section-green { border-top-color: #2ecc71; }
-.section-grey { border-top-color: #7f8c8d; }
+.section-purple { border-top-color: #9b59b6; } /* Nowy kolor dla sekcji laboratoryjnej */
 
 .input-group {
     display: flex;
@@ -73,7 +72,7 @@ h1 {
 .input-group label {
     flex: 1;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .input-group input {
@@ -83,17 +82,16 @@ h1 {
     border-radius: 4px;
 }
 
-.input-group select {
-    width: 80px;
-    margin-left: 10px;
+.wide-select {
+    flex: 1.5;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
 .unit {
-    width: 60px;
-    text-align: center;
+    width: 50px;
+    text-align: right;
     font-size: 13px;
     color: #666;
     margin-left: 10px;
@@ -113,28 +111,53 @@ h1 {
     font-size: 16px;
 }
 
-.calc-btn {
-    display: block;
-    width: 100%;
-    padding: 16px;
-    margin-top: 25px;
-    background-color: #2980b9;
+.buttons-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.calc-btn, .report-btn {
+    flex: 1;
+    padding: 15px;
     color: #fff;
     border: none;
     border-radius: 6px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: 0.3s;
 }
 
-.calc-btn:hover {
-    background-color: #2471a3;
+.calc-btn { background-color: #2980b9; }
+.calc-btn:hover { background-color: #2471a3; }
+
+.report-btn { background-color: #27ae60; }
+.report-btn:hover { background-color: #219150; }
+
+.hidden {
+    display: none;
 }
 
-/* Responsywność dla małych ekranów (telefonów) */
+#raport-container {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #fdfbf7;
+    border: 1px solid #e8e0c5;
+    border-radius: 6px;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    resize: vertical;
+}
+
 @media (max-width: 768px) {
-    .grid-layout {
-        grid-template-columns: 1fr;
-    }
+    .grid-layout { grid-template-columns: 1fr; }
+    .buttons-container { flex-direction: column; }
 }
