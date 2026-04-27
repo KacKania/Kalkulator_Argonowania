@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modelowanie Fizyczne - Argonowanie</title>
+    <title>Modelowanie Fizyczne - Argonowanie PRO</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Laboratorium: Modelowanie fizyczne reaktorów metalurgicznych</h1>
-        <p class="subtitle">Obliczanie parametrów i rejestracja danych z modelu wodnego kadzi</p>
+        <h1>Laboratorium: Modelowanie fizyczne reaktorów</h1>
+        <p class="subtitle">Zautomatyzowane obliczenia, geometria, rejestracja RTD i raportowanie</p>
 
         <div class="grid-layout">
             <div class="panel section-blue">
-                <h3>1. Właściwości reaktora rzeczywistego</h3>
+                <h3>1. Właściwości cieczy</h3>
                 <div class="input-group">
                     <label>Masa Stali</label>
-                    <input type="number" id="masa" placeholder="np. 100000">
+                    <input type="text" id="masa" placeholder="np. 100000">
                     <span class="unit">kg</span>
                 </div>
                 <div class="input-group">
                     <label>Gęstość Stali</label>
-                    <input type="number" id="gestosc" placeholder="np. 7000">
+                    <input type="text" id="gestosc" placeholder="np. 7000">
                     <span class="unit">kg/m³</span>
                 </div>
                 <div class="input-group result-group">
-                    <label>Objętość Stali</label>
+                    <label>Objętość z masy</label>
                     <input type="text" id="objetosc-stali" readonly>
                     <span class="unit">m³</span>
                 </div>
@@ -35,17 +37,17 @@
                 <h3>2. Geometria reaktora / modelu</h3>
                 <div class="input-group">
                     <label>Średnica górna (D)</label>
-                    <input type="number" id="D" placeholder="np. 2.5">
+                    <input type="text" id="D" placeholder="np. 2.5">
                     <span class="unit">m</span>
                 </div>
                 <div class="input-group">
                     <label>Średnica dolna (d)</label>
-                    <input type="number" id="d" placeholder="np. 2.0">
+                    <input type="text" id="d" placeholder="np. 2.0">
                     <span class="unit">m</span>
                 </div>
                 <div class="input-group">
                     <label>Wysokość cieczy (h)</label>
-                    <input type="number" id="h" placeholder="np. 3.0">
+                    <input type="text" id="h" placeholder="np. 3.0">
                     <span class="unit">m</span>
                 </div>
                 <div class="input-group result-group">
@@ -55,60 +57,89 @@
                 </div>
             </div>
 
-            <div class="panel section-green">
-                <h3>3. Obliczenia strumienia (Kryt. Froude'a)</h3>
-                <div class="input-group">
-                    <label>Strumień reaktora (Q)</label>
-                    <input type="number" id="Q" placeholder="Wprowadź Q">
-                    <span class="unit">m³/s</span>
-                </div>
-                <div class="input-group">
-                    <label>Stała modelu (C') / Stała (C)</label>
-                    <input type="number" id="C_ratio" placeholder="Stosunek C'/C">
-                    <span class="unit">-</span>
-                </div>
-                <div class="input-group">
-                    <label>Współcz. skali (S<sub>L</sub>)</label>
-                    <input type="number" id="SL" placeholder="np. 0.2">
-                    <span class="unit">-</span>
-                </div>
-                <div class="input-group result-group highlight">
-                    <label>Strumień gazu dla modelu (Q')</label>
-                    <input type="text" id="Q_prime" readonly>
-                    <span class="unit">m³/s</span>
+            <div class="panel section-green full-width">
+                <h3>3. Obliczenia strumienia dla modelu (Kryt. Froude'a)</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <div class="input-group">
+                            <label>Baza gazów</label>
+                            <select id="baza-gazow" class="wide-select" onchange="wczytajZBazy()">
+                                <option value="custom">-- Wpisz ręcznie --</option>
+                                <option value="argon_7000">Argon (Stal 7000)</option>
+                                <option value="argon_7200">Argon (Stal 7200)</option>
+                                <option value="tlen_7000">Tlen (Stal 7000)</option>
+                                <option value="tlen_7200">Tlen (Stal 7200)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Stała reaktora (C)</label>
+                            <input type="text" id="C" placeholder="np. 0.127">
+                        </div>
+                        <div class="input-group">
+                            <label>Stała modelu (C')</label>
+                            <input type="text" id="C_prime" placeholder="np. 0.698">
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <div class="input-group">
+                            <label>Współcz. skali (S<sub>L</sub>)</label>
+                            <input type="text" id="SL" placeholder="np. 0.333333">
+                        </div>
+                        <div class="input-group">
+                            <label>Strumień reaktora (Q)</label>
+                            <input type="text" id="Q" placeholder="np. 450">
+                            <span class="unit">m³/s</span>
+                        </div>
+                        <div class="input-group result-group highlight">
+                            <label>Strumień modelu (Q')</label>
+                            <input type="text" id="Q_prime" readonly>
+                            <span class="unit">m³/s</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel section-purple">
-                <h3>4. Parametry stanowiska badawczego</h3>
-                <div class="input-group">
-                    <label>Typ kształtki w dnie</label>
-                    <select id="typ-ksztaltki" class="wide-select">
-                        <option value="porowata">Kształtka typu porowatego</option>
-                        <option value="szczelinowa">Kształtka typu szczelinowego</option>
-                    </select>
+            <div class="panel section-purple full-width">
+                <h3>4. Dane laboratoryjne (Krzywe RTD)</h3>
+                <div class="rtd-controls">
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 250px;">
+                            <label>Typ kształtki:</label>
+                            <select id="typ-ksztaltki" class="wide-select">
+                                <option>Kształtka typu porowatego</option>
+                                <option>Kształtka typu szczelinowego</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 250px;">
+                            <label>Znacznik (KMnO4+NaCl):</label>
+                            <input type="text" id="znacznik" placeholder="np. 50">
+                            <span class="unit">ml</span>
+                        </div>
+                    </div>
+                    <div class="add-point-group">
+                        <input type="text" id="rtd-czas" placeholder="Czas (s)">
+                        <input type="text" id="rtd-stezenie" placeholder="Stężenie">
+                        <button class="add-btn" onclick="dodajPunktRTD()">+ Dodaj punkt do wykresu</button>
+                        <button class="clear-btn" onclick="wyczyscRTD()">Wyczyść dane</button>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Objętość znacznika (KMnO4 + NaCl)</label>
-                    <input type="number" id="znacznik" placeholder="np. 50">
-                    <span class="unit">ml</span>
-                </div>
-                <div class="input-group">
-                    <label>Zarejestrowany czas wymieszania (RTD)</label>
-                    <input type="number" id="czas-wymieszania" placeholder="Z pomiaru">
-                    <span class="unit">s</span>
+                
+                <div class="chart-container">
+                    <canvas id="rtdChart"></canvas>
                 </div>
             </div>
         </div>
 
         <div class="buttons-container">
-            <button class="calc-btn" onclick="obliczWszystko()">1. Wykonaj obliczenia</button>
-            <button class="report-btn" onclick="generujSprawozdanie()">2. Generuj dane do sprawozdania</button>
+            <button class="calc-btn" onclick="obliczWszystko()">1. Oblicz parametry</button>
+            <button class="report-btn" onclick="generujTekst()">2. Sprawozdanie Tekstowe</button>
+            <button class="export-pdf-btn" onclick="generujPDF()">3. Eksport do PDF</button>
+            <button class="export-csv-btn" onclick="generujCSV()">4. Eksport danych CSV</button>
         </div>
 
         <div id="raport-container" class="hidden">
-            <h3>Dane do sprawozdania:</h3>
-            <textarea id="raport-text" readonly rows="8"></textarea>
+            <h3>Proste sprawozdanie tekstowe (do skopiowania):</h3>
+            <textarea id="raport-text" readonly rows="12"></textarea>
         </div>
     </div>
 
