@@ -88,6 +88,20 @@ h1 {
     border-radius: 4px; 
 }
 
+/* Nowy styl dla list rozwijanych z jednostkami */
+.unit-select { 
+    width: 80px; 
+    text-align: center; 
+    font-size: 13px; 
+    color: #333; 
+    margin-left: 10px; 
+    padding: 7px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
 .wide-select { 
     flex: 1; 
     padding: 8px; 
@@ -116,6 +130,23 @@ h1 {
     color: #155724; 
     border: 1px solid #c3e6cb; 
     font-size: 16px; 
+}
+
+/* Przycisk tylko dla Sekcji 1 */
+.calc-btn-small {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.calc-btn-small:hover { 
+    background-color: #2980b9; 
 }
 
 /* Kontrolki wykresu RTD */
@@ -208,11 +239,11 @@ h1 {
     border-radius: 6px; 
 }
 
-#raport-container h3 {
-    margin-top: 0;
-    color: #2c3e50;
-    font-size: 16px;
-    margin-bottom: 10px;
+#raport-container h3 { 
+    margin-top: 0; 
+    color: #2c3e50; 
+    font-size: 16px; 
+    margin-bottom: 10px; 
 }
 
 textarea { 

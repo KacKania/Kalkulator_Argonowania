@@ -11,25 +11,34 @@
 <body>
     <div class="container">
         <h1>Laboratorium: Modelowanie fizyczne reaktorów</h1>
-        <p class="subtitle">Zautomatyzowane obliczenia, geometria, rejestracja RTD i raportowanie</p>
+        <p class="subtitle">W pełni zautomatyzowane obliczenia w locie, rejestracja RTD i raportowanie</p>
 
         <div class="grid-layout">
             <div class="panel section-blue">
                 <h3>1. Właściwości cieczy</h3>
                 <div class="input-group">
                     <label>Masa Stali</label>
-                    <input type="text" id="masa" placeholder="np. 100000">
-                    <span class="unit">kg</span>
+                    <input type="text" id="masa" placeholder="np. 100" oninput="obliczSekcje1()">
+                    <select id="j-masa" class="unit-select" onchange="obliczSekcje1()">
+                        <option value="t" selected>t (tony)</option>
+                        <option value="kg">kg</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>Gęstość Stali</label>
-                    <input type="text" id="gestosc" placeholder="np. 7000">
-                    <span class="unit">kg/m³</span>
+                    <input type="text" id="gestosc" placeholder="np. 7000" oninput="obliczSekcje1()">
+                    <select id="j-gestosc" class="unit-select" onchange="obliczSekcje1()">
+                        <option value="kg/m3">kg/m³</option>
+                        <option value="g/cm3">g/cm³</option>
+                    </select>
                 </div>
                 <div class="input-group result-group">
                     <label>Objętość z masy</label>
                     <input type="text" id="objetosc-stali" readonly>
-                    <span class="unit">m³</span>
+                    <select id="j-objetosc1" class="unit-select" onchange="obliczSekcje1()">
+                        <option value="m3">m³</option>
+                        <option value="l">l (litry)</option>
+                    </select>
                 </div>
             </div>
 
@@ -37,23 +46,38 @@
                 <h3>2. Geometria reaktora / modelu</h3>
                 <div class="input-group">
                     <label>Średnica górna (D)</label>
-                    <input type="text" id="D" placeholder="np. 2.5">
-                    <span class="unit">m</span>
+                    <input type="text" id="D" placeholder="np. 2.5" oninput="obliczGeometrie()">
+                    <select id="j-D" class="unit-select" onchange="obliczGeometrie()">
+                        <option value="m">m</option>
+                        <option value="cm">cm</option>
+                        <option value="mm">mm</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>Średnica dolna (d)</label>
-                    <input type="text" id="d" placeholder="np. 2.0">
-                    <span class="unit">m</span>
+                    <input type="text" id="d" placeholder="np. 2.0" oninput="obliczGeometrie()">
+                    <select id="j-d" class="unit-select" onchange="obliczGeometrie()">
+                        <option value="m">m</option>
+                        <option value="cm">cm</option>
+                        <option value="mm">mm</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>Wysokość cieczy (h)</label>
-                    <input type="text" id="h" placeholder="np. 3.0">
-                    <span class="unit">m</span>
+                    <input type="text" id="h" placeholder="np. 3.0" oninput="obliczGeometrie()">
+                    <select id="j-h" class="unit-select" onchange="obliczGeometrie()">
+                        <option value="m">m</option>
+                        <option value="cm">cm</option>
+                        <option value="mm">mm</option>
+                    </select>
                 </div>
                 <div class="input-group result-group">
                     <label>Objętość z wymiarów</label>
                     <input type="text" id="objetosc-geometria" readonly>
-                    <span class="unit">m³</span>
+                    <select id="j-objetosc2" class="unit-select" onchange="obliczGeometrie()">
+                        <option value="m3">m³</option>
+                        <option value="l">l (litry)</option>
+                    </select>
                 </div>
             </div>
 
@@ -61,39 +85,61 @@
                 <h3>3. Obliczenia strumienia dla modelu (Kryt. Froude'a)</h3>
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 300px;">
+                        
+                        <div class="input-group" style="flex-direction: column; align-items: stretch; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <label style="font-weight: bold;">Skład gazu roboczego:</label>
+                                <span id="gaz-etykieta" style="font-weight: bold; color: #8e44ad;">0% O₂ / 100% Ar</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 14px; font-weight: bold; color: #c0392b;">Tlen</span>
+                                <input type="range" id="proporcja-gazu" min="0" max="100" value="100" oninput="obliczSekcje3()" style="flex: 1; cursor: pointer;">
+                                <span style="font-size: 14px; font-weight: bold; color: #2980b9;">Argon</span>
+                            </div>
+                        </div>
+
                         <div class="input-group">
-                            <label>Baza gazów</label>
-                            <select id="baza-gazow" class="wide-select" onchange="wczytajZBazy()">
-                                <option value="custom">-- Wpisz ręcznie --</option>
-                                <option value="argon_7000">Argon (Stal 7000)</option>
-                                <option value="argon_7200">Argon (Stal 7200)</option>
-                                <option value="tlen_7000">Tlen (Stal 7000)</option>
-                                <option value="tlen_7200">Tlen (Stal 7200)</option>
+                            <label>Gęstość Stali</label>
+                            <input type="text" id="gestosc3" placeholder="np. 7000" oninput="obliczSekcje3()">
+                            <select id="j-gestosc3" class="unit-select" onchange="obliczSekcje3()">
+                                <option value="kg/m3">kg/m³</option>
+                                <option value="g/cm3">g/cm³</option>
                             </select>
                         </div>
-                        <div class="input-group">
+                        <div class="input-group result-group">
                             <label>Stała reaktora (C)</label>
-                            <input type="text" id="C" placeholder="np. 0.127">
+                            <input type="text" id="C" readonly placeholder="Obliczana ze wzoru">
                         </div>
-                        <div class="input-group">
+                        <div class="input-group result-group">
                             <label>Stała modelu (C')</label>
-                            <input type="text" id="C_prime" placeholder="np. 0.698">
+                            <input type="text" id="C_prime" readonly placeholder="Obliczana automatycznie">
                         </div>
                     </div>
                     <div style="flex: 1; min-width: 300px;">
                         <div class="input-group">
                             <label>Współcz. skali (S<sub>L</sub>)</label>
-                            <input type="text" id="SL" placeholder="np. 0.333333">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <span style="margin-right: 8px; font-weight: bold; font-size: 16px; color: #2c3e50;">1 :</span>
+                                <input type="number" id="SL_mianownik" step="0.1" placeholder="np. 3.0" oninput="obliczSekcje3()" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
                         </div>
                         <div class="input-group">
                             <label>Strumień reaktora (Q)</label>
-                            <input type="text" id="Q" placeholder="np. 450">
-                            <span class="unit">m³/s</span>
+                            <input type="text" id="Q" placeholder="np. 450" oninput="obliczSekcje3()">
+                            <select id="j-Q" class="unit-select" onchange="obliczSekcje3()">
+                                <option value="l/min" selected>l/min</option>
+                                <option value="m3/s">m³/s</option>
+                                <option value="m3/h">m³/h</option>
+                            </select>
                         </div>
                         <div class="input-group result-group highlight">
                             <label>Strumień modelu (Q')</label>
                             <input type="text" id="Q_prime" readonly>
-                            <span class="unit">m³/s</span>
+                            <select id="j-Q-prime" class="unit-select" onchange="obliczSekcje3()">
+                                <option value="l/min" selected>l/min</option>
+                                <option value="m3/s">m³/s</option>
+                                <option value="m3/h">m³/h</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -113,7 +159,7 @@
                         <div class="input-group" style="flex: 1; min-width: 250px;">
                             <label>Znacznik (KMnO4+NaCl):</label>
                             <input type="text" id="znacznik" placeholder="np. 50">
-                            <span class="unit">ml</span>
+                            <span class="unit" style="margin-right: 15px;">ml</span>
                         </div>
                     </div>
                     <div class="add-point-group">
@@ -131,15 +177,14 @@
         </div>
 
         <div class="buttons-container">
-            <button class="calc-btn" onclick="obliczWszystko()">1. Oblicz parametry</button>
-            <button class="report-btn" onclick="generujTekst()">2. Sprawozdanie Tekstowe</button>
-            <button class="export-pdf-btn" onclick="generujPDF()">3. Eksport do PDF</button>
-            <button class="export-csv-btn" onclick="generujCSV()">4. Eksport danych CSV</button>
+            <button class="report-btn" onclick="generujTekst()">1. Sprawozdanie Tekstowe</button>
+            <button class="export-pdf-btn" onclick="generujPDF()">2. Eksport do PDF</button>
+            <button class="export-csv-btn" onclick="generujCSV()">3. Eksport danych CSV</button>
         </div>
 
         <div id="raport-container" class="hidden">
             <h3>Proste sprawozdanie tekstowe (do skopiowania):</h3>
-            <textarea id="raport-text" readonly rows="12"></textarea>
+            <textarea id="raport-text" readonly rows="13"></textarea>
         </div>
     </div>
 

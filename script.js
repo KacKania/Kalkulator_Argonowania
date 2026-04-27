@@ -7,66 +7,155 @@ document.addEventListener('input', function(e) {
     }
 });
 
-const bazaDanych = {
-    'argon_7000': { C: 0.127, C_prime: 0.698 },
-    'argon_7200': { C: 0.124, C_prime: 0.698 },
-    'tlen_7000': { C: 0.102, C_prime: 0.698 },
-    'tlen_7200': { C: 0.099, C_prime: 0.698 }
+// ============================================
+// DANE ZASZYTE NA SZTYWNO (Tylko Argon i Tlen)
+// ============================================
+const M_POWIETRZA = 28.96; // Masa molowa powietrza [g/mol]
+const RHO_POWIETRZA = 1.202; // Gęstość powietrza [kg/m³]
+const RHO_WODY = 1000;       // Gęstość wody w modelu [kg/m³]
+
+const BAZA_GAZOW = {
+    'argon': { M: 39.95, rho: 1.784 },
+    'tlen':  { M: 32.00, rho: 1.429 }
 };
 
-function wczytajZBazy() {
-    const wybor = document.getElementById('baza-gazow').value;
-    if (bazaDanych[wybor]) {
-        document.getElementById('C').value = bazaDanych[wybor].C;
-        document.getElementById('C_prime').value = bazaDanych[wybor].C_prime;
-    }
-}
-
-// OBLICZENIA GŁÓWNE
-function obliczWszystko() {
-    // 1. Objętość z masy
-    const masa = parseFloat(document.getElementById('masa').value);
-    const gestosc = parseFloat(document.getElementById('gestosc').value);
-    if (!isNaN(masa) && !isNaN(gestosc) && gestosc !== 0) {
-        document.getElementById('objetosc-stali').value = (masa / gestosc).toFixed(4);
-    } else {
-        document.getElementById('objetosc-stali').value = "";
-    }
-
-    // 2. Objętość z geometrii stożka ściętego
-    const D = parseFloat(document.getElementById('D').value);
-    const d = parseFloat(document.getElementById('d').value);
-    const h = parseFloat(document.getElementById('h').value);
-    if (!isNaN(D) && !isNaN(d) && !isNaN(h)) {
-        const R = D / 2;
-        const r = d / 2;
-        const objetoscGeo = (1/3) * Math.PI * h * (Math.pow(R, 2) + (R * r) + Math.pow(r, 2));
-        document.getElementById('objetosc-geometria').value = objetoscGeo.toFixed(4);
-    } else {
-        document.getElementById('objetosc-geometria').value = "";
-    }
-
-    // 3. Strumień modelu
-    const C = parseFloat(document.getElementById('C').value);
-    const C_prime = parseFloat(document.getElementById('C_prime').value);
-    const SL = parseFloat(document.getElementById('SL').value);
-    const Q = parseFloat(document.getElementById('Q').value);
+// ============================================
+// LOGIKA SEKCJI 1: WŁAŚCIWOŚCI CIECZY
+// ============================================
+function obliczSekcje1() {
+    const masaInput = parseFloat(document.getElementById('masa').value);
+    const gestoscInput = parseFloat(document.getElementById('gestosc').value);
     
-    if (!isNaN(C) && !isNaN(C_prime) && !isNaN(SL) && !isNaN(Q) && C !== 0) {
-        const Q_prime = Math.pow((C_prime / C), -0.5) * Math.pow(SL, 2.5) * Q;
-        document.getElementById('Q_prime').value = Q_prime.toFixed(3);
+    if (isNaN(masaInput) || isNaN(gestoscInput) || gestoscInput === 0) {
+        document.getElementById('objetosc-stali').value = "";
+        return;
     }
+
+    const jMasa = document.getElementById('j-masa').value;
+    const jGestosc = document.getElementById('j-gestosc').value;
+    const jObjetosc = document.getElementById('j-objetosc1').value;
+
+    let masaKg = jMasa === 't' ? masaInput * 1000 : masaInput;
+    let gestoscKgM3 = jGestosc === 'g/cm3' ? gestoscInput * 1000 : gestoscInput;
+
+    let objM3 = masaKg / gestoscKgM3;
+    let wynik = jObjetosc === 'l' ? objM3 * 1000 : objM3;
+    
+    document.getElementById('objetosc-stali').value = wynik.toFixed(4);
 }
 
+// ============================================
+// LOGIKA SEKCJI 2: GEOMETRIA (W LOCIE)
+// ============================================
+function obliczGeometrie() {
+    const D_in = parseFloat(document.getElementById('D').value);
+    const d_in = parseFloat(document.getElementById('d').value);
+    const h_in = parseFloat(document.getElementById('h').value);
+
+    if (isNaN(D_in) || isNaN(d_in) || isNaN(h_in)) {
+        document.getElementById('objetosc-geometria').value = "";
+        return;
+    }
+
+    const toMeters = (val, unit) => {
+        if (unit === 'cm') return val / 100;
+        if (unit === 'mm') return val / 1000;
+        return val;
+    };
+
+    const D = toMeters(D_in, document.getElementById('j-D').value);
+    const d = toMeters(d_in, document.getElementById('j-d').value);
+    const h = toMeters(h_in, document.getElementById('j-h').value);
+
+    const R = D / 2;
+    const r = d / 2;
+    const objM3 = (1/3) * Math.PI * h * (Math.pow(R, 2) + (R * r) + Math.pow(r, 2));
+
+    const jObjetosc = document.getElementById('j-objetosc2').value;
+    let wynik = jObjetosc === 'l' ? objM3 * 1000 : objM3;
+
+    document.getElementById('objetosc-geometria').value = wynik.toFixed(4);
+}
+
+// ============================================
+// LOGIKA SEKCJI 3: STRUMIEŃ Z MIESZANKĄ GAZÓW
+// ============================================
+function obliczSekcje3() {
+    // 1. Odczytywanie i obsługa suwaka gazów
+    const procentAr = parseInt(document.getElementById('proporcja-gazu').value);
+    const procentO2 = 100 - procentAr;
+    
+    // Aktualizacja etykiety na żywo
+    document.getElementById('gaz-etykieta').innerText = `${procentO2}% O₂ / ${procentAr}% Ar`;
+
+    // 2. Pobieranie Gęstości Stali
+    const gestoscInput = parseFloat(document.getElementById('gestosc3').value);
+    const jGestosc = document.getElementById('j-gestosc3').value;
+
+    if (isNaN(gestoscInput) || gestoscInput <= 0) {
+        document.getElementById('C').value = "";
+        document.getElementById('C_prime').value = "";
+        document.getElementById('Q_prime').value = "";
+        return;
+    }
+
+    const gestoscStaliKgM3 = jGestosc === 'g/cm3' ? gestoscInput * 1000 : gestoscInput;
+
+    // 3. Obliczanie efektywnej Masy Molowej i Gęstości Mieszanki Gazu
+    const xAr = procentAr / 100;
+    const xO2 = procentO2 / 100;
+
+    const masaMolowaMieszanki = (xAr * BAZA_GAZOW['argon'].M) + (xO2 * BAZA_GAZOW['tlen'].M);
+    const gestoscMieszanki = (xAr * BAZA_GAZOW['argon'].rho) + (xO2 * BAZA_GAZOW['tlen'].rho);
+
+    // 4. Obliczanie stałych C i C'
+    const C_prime = Math.pow(M_POWIETRZA, 2) / (RHO_POWIETRZA * RHO_WODY);
+    const C = Math.pow(masaMolowaMieszanki, 2) / (gestoscMieszanki * gestoscStaliKgM3);
+
+    document.getElementById('C_prime').value = C_prime.toFixed(3);
+    document.getElementById('C').value = C.toFixed(3);
+
+    // 5. Obliczenia Strumienia (Froude) z ułamkiem skali 1:X
+    const slMianownik = parseFloat(document.getElementById('SL_mianownik').value);
+    const Q_in = parseFloat(document.getElementById('Q').value);
+    
+    if (isNaN(slMianownik) || slMianownik <= 0 || isNaN(Q_in)) {
+        document.getElementById('Q_prime').value = "";
+        return;
+    }
+
+    const SL = 1 / slMianownik;
+    const jQ = document.getElementById('j-Q').value;
+    const jQPrime = document.getElementById('j-Q-prime').value;
+
+    let qM3S = Q_in;
+    if (jQ === 'l/min') qM3S = Q_in / 60000;
+    if (jQ === 'm3/h') qM3S = Q_in / 3600;
+
+    let qPrimeM3S = Math.pow((C_prime / C), -0.5) * Math.pow(SL, 2.5) * qM3S;
+
+    let wynik = qPrimeM3S;
+    if (jQPrime === 'l/min') wynik = qPrimeM3S * 60000;
+    if (jQPrime === 'm3/h') wynik = qPrimeM3S * 3600;
+
+    document.getElementById('Q_prime').value = wynik.toFixed(3);
+}
+
+// Funkcja zbiorcza do odświeżenia przed eksportem
+function obliczWszystko() {
+    obliczSekcje1();
+    obliczGeometrie();
+    obliczSekcje3();
+}
+
+// ============================================
 // MODUŁ RTD
+// ============================================
 let rtdPunkty = [];
 let wykresRTD = null;
 
 function inicjujWykres() {
-    if (typeof Chart === 'undefined') {
-        console.warn("Zablokowano Chart.js - wykres nie zostanie narysowany.");
-        return;
-    }
+    if (typeof Chart === 'undefined') return;
     const ctx = document.getElementById('rtdChart').getContext('2d');
     wykresRTD = new Chart(ctx, {
         type: 'line',
@@ -112,16 +201,26 @@ function wyczyscRTD() {
 
 window.onload = inicjujWykres;
 
-// EKSPORT
+// ============================================
+// EKSPORT I RAPORTY
+// ============================================
 function generujTekst() {
     obliczWszystko(); 
     
     const volGeo = document.getElementById('objetosc-geometria').value || "Brak danych";
+    const unitGeo = document.getElementById('j-objetosc2').value;
     const Q = document.getElementById('Q').value || "Brak danych";
+    const unitQ = document.getElementById('j-Q').value;
     const C = document.getElementById('C').value || "Brak danych";
     const C_prime = document.getElementById('C_prime').value || "Brak danych";
-    const SL = document.getElementById('SL').value || "Brak danych";
+    
+    const slMianownik = document.getElementById('SL_mianownik').value;
+    const SL = slMianownik ? `1 : ${slMianownik}` : "Brak danych";
+    
+    const gazMix = document.getElementById('gaz-etykieta').innerText;
+    
     const Q_prime = document.getElementById('Q_prime').value || "Brak obliczen";
+    const unitQPrime = document.getElementById('j-Q-prime').value;
     const ksztaltka = document.getElementById('typ-ksztaltki').value;
     const znacznik = document.getElementById('znacznik').value || "Brak danych";
 
@@ -130,13 +229,14 @@ function generujTekst() {
 Zastosowana ksztaltka: ${ksztaltka}
 Objetosc znacznika (KMnO4+NaCl): ${znacznik} ml
 
-Geometria: Objetosc reaktora obliczona: ${volGeo} m3
-Wspolczynnik skali (SL): ${SL}
+Geometria: Objetosc reaktora obliczona: ${volGeo} ${unitGeo}
+Wspolczynnik skali modelu: ${SL}
+Gaz roboczy (mieszanka): ${gazMix}
 Stala reaktora (C): ${C}
 Stala modelu (C'): ${C_prime}
 
-Zalozony strumien gazu dla reaktora (Q): ${Q} m3/s
-OBLICZONY STRUMIEN DLA MODELU (Q'): ${Q_prime} m3/s
+Zalozony strumien gazu dla reaktora (Q): ${Q} ${unitQ}
+OBLICZONY STRUMIEN DLA MODELU (Q'): ${Q_prime} ${unitQPrime}
 --------------------------------------------------\nZarejestrowane punkty RTD:\n`;
 
     if (rtdPunkty.length === 0) {
@@ -169,16 +269,25 @@ function generujPDF() {
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     
-    doc.text(`Objetosc obliczona z geometrii: ${document.getElementById('objetosc-geometria').value || '-'} m3`, 20, 35);
-    doc.text(`Wspolczynnik skali (SL): ${document.getElementById('SL').value || '-'}`, 20, 45);
-    doc.text(`Stala (C): ${document.getElementById('C').value || '-'}  |  Stala modelu (C'): ${document.getElementById('C_prime').value || '-'}`, 20, 55);
-    doc.text(`Strumien w reaktorze (Q): ${document.getElementById('Q').value || '-'} m3/s`, 20, 65);
-    doc.text(`Strumien w modelu (Q'): ${document.getElementById('Q_prime').value || '-'} m3/s`, 20, 75);
-    doc.text(`Typ ksztaltki: ${document.getElementById('typ-ksztaltki').value}`, 20, 90);
-    doc.text(`Objetosc znacznika (KMnO4+NaCl): ${document.getElementById('znacznik').value || '-'} ml`, 20, 100);
+    const uGeo = document.getElementById('j-objetosc2').value;
+    const uQ = document.getElementById('j-Q').value;
+    const uQp = document.getElementById('j-Q-prime').value;
     
-    doc.text("Zarejestrowane punkty RTD:", 20, 120);
-    let yPos = 130;
+    const slMianownik = document.getElementById('SL_mianownik').value;
+    const SL = slMianownik ? `1 : ${slMianownik}` : "-";
+    const gazMix = document.getElementById('gaz-etykieta').innerText;
+
+    doc.text(`Objetosc obliczona z geometrii: ${document.getElementById('objetosc-geometria').value || '-'} ${uGeo}`, 20, 35);
+    doc.text(`Wspolczynnik skali modelu: ${SL}`, 20, 45);
+    doc.text(`Mieszanka gazowa: ${gazMix}`, 20, 55);
+    doc.text(`Stala (C): ${document.getElementById('C').value || '-'}  |  Stala modelu (C'): ${document.getElementById('C_prime').value || '-'}`, 20, 65);
+    doc.text(`Strumien w reaktorze (Q): ${document.getElementById('Q').value || '-'} ${uQ}`, 20, 75);
+    doc.text(`Strumien w modelu (Q'): ${document.getElementById('Q_prime').value || '-'} ${uQp}`, 20, 85);
+    doc.text(`Typ ksztaltki: ${document.getElementById('typ-ksztaltki').value}`, 20, 100);
+    doc.text(`Objetosc znacznika (KMnO4+NaCl): ${document.getElementById('znacznik').value || '-'} ml`, 20, 110);
+    
+    doc.text("Zarejestrowane punkty RTD:", 20, 130);
+    let yPos = 140;
     rtdPunkty.forEach((pkt, index) => {
         doc.text(`${index + 1}. Czas: ${pkt.x} s | Stezenie: ${pkt.y}`, 30, yPos);
         yPos += 10;
