@@ -1,167 +1,138 @@
-// Zamiana przecinka na kropkę w locie
+// ============================================
+// SYSTEM PAMIĘCI I OBSŁUGA BŁĘDÓW
+// ============================================
+function zapiszStan() {
+    const inputs = document.querySelectorAll('input:not([readonly]), select');
+    const stan = {};
+    inputs.forEach(el => {
+        if(el.id) stan[el.id] = el.value;
+    });
+    stan['rtdPunkty'] = rtdPunkty;
+    localStorage.setItem('argonowanie_sesja_pro', JSON.stringify(stan));
+}
+
+function odtworzStan() {
+    const zapisany = localStorage.getItem('argonowanie_sesja_pro');
+    if (zapisany) {
+        const stan = JSON.parse(zapisany);
+        for (const klucz in stan) {
+            if (klucz === 'rtdPunkty') {
+                rtdPunkty = stan[klucz] || [];
+            } else {
+                const el = document.getElementById(klucz);
+                if (el) el.value = stan[klucz];
+            }
+        }
+    }
+    obliczWszystko();
+    inicjujWykres();
+}
+
 document.addEventListener('input', function(e) {
     if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') {
         if (!e.target.readOnly) {
             e.target.value = e.target.value.replace(',', '.');
         }
     }
+    zapiszStan();
 });
 
+document.addEventListener('change', zapiszStan);
+
+window.onload = odtworzStan;
+
 // ============================================
-// DANE ZASZYTE NA SZTYWNO (Tylko Argon i Tlen)
+// PARAMETRY FIZYCZNE I MATEMATYKA
 // ============================================
-const M_POWIETRZA = 28.96; // Masa molowa powietrza [g/mol]
-const RHO_POWIETRZA = 1.202; // Gęstość powietrza [kg/m³]
-const RHO_WODY = 1000;       // Gęstość wody w modelu [kg/m³]
+const M_POWIETRZA = 28.96; 
+const RHO_POWIETRZA = 1.202; 
+const RHO_WODY = 1000;       
 
 const BAZA_GAZOW = {
     'argon': { M: 39.95, rho: 1.784 },
     'tlen':  { M: 32.00, rho: 1.429 }
 };
 
-// ============================================
-// LOGIKA SEKCJI 1: WŁAŚCIWOŚCI CIECZY
-// ============================================
 function obliczSekcje1() {
-    const masaInput = parseFloat(document.getElementById('masa').value);
-    const gestoscInput = parseFloat(document.getElementById('gestosc').value);
-    
-    if (isNaN(masaInput) || isNaN(gestoscInput) || gestoscInput === 0) {
+    const m = parseFloat(document.getElementById('masa').value);
+    const rho = parseFloat(document.getElementById('gestosc').value);
+    if (isNaN(m) || isNaN(rho) || rho === 0) {
         document.getElementById('objetosc-stali').value = "";
         return;
     }
-
-    const jMasa = document.getElementById('j-masa').value;
-    const jGestosc = document.getElementById('j-gestosc').value;
-    const jObjetosc = document.getElementById('j-objetosc1').value;
-
-    let masaKg = jMasa === 't' ? masaInput * 1000 : masaInput;
-    let gestoscKgM3 = jGestosc === 'g/cm3' ? gestoscInput * 1000 : gestoscInput;
-
-    let objM3 = masaKg / gestoscKgM3;
-    let wynik = jObjetosc === 'l' ? objM3 * 1000 : objM3;
-    
-    document.getElementById('objetosc-stali').value = wynik.toFixed(4);
+    const mKg = document.getElementById('j-masa').value === 't' ? m * 1000 : m;
+    const rhoKg = document.getElementById('j-gestosc').value === 'g/cm3' ? rho * 1000 : rho;
+    const vM3 = mKg / rhoKg;
+    const res = document.getElementById('j-objetosc1').value === 'l' ? vM3 * 1000 : vM3;
+    document.getElementById('objetosc-stali').value = res.toFixed(4);
 }
 
-// ============================================
-// LOGIKA SEKCJI 2: GEOMETRIA (W LOCIE)
-// ============================================
 function obliczGeometrie() {
-    const D_in = parseFloat(document.getElementById('D').value);
-    const d_in = parseFloat(document.getElementById('d').value);
-    const h_in = parseFloat(document.getElementById('h').value);
-
-    if (isNaN(D_in) || isNaN(d_in) || isNaN(h_in)) {
+    const Din = parseFloat(document.getElementById('D').value);
+    const din = parseFloat(document.getElementById('d').value);
+    const hin = parseFloat(document.getElementById('h').value);
+    if (isNaN(Din) || isNaN(din) || isNaN(hin)) {
         document.getElementById('objetosc-geometria').value = "";
         return;
     }
-
-    const toMeters = (val, unit) => {
-        if (unit === 'cm') return val / 100;
-        if (unit === 'mm') return val / 1000;
-        return val;
-    };
-
-    const D = toMeters(D_in, document.getElementById('j-D').value);
-    const d = toMeters(d_in, document.getElementById('j-d').value);
-    const h = toMeters(h_in, document.getElementById('j-h').value);
-
-    const R = D / 2;
-    const r = d / 2;
-    const objM3 = (1/3) * Math.PI * h * (Math.pow(R, 2) + (R * r) + Math.pow(r, 2));
-
-    const jObjetosc = document.getElementById('j-objetosc2').value;
-    let wynik = jObjetosc === 'l' ? objM3 * 1000 : objM3;
-
-    document.getElementById('objetosc-geometria').value = wynik.toFixed(4);
+    const toM = (v, u) => u === 'cm' ? v / 100 : v;
+    const D = toM(Din, document.getElementById('j-D').value);
+    const d = toM(din, document.getElementById('j-d').value);
+    const h = toM(hin, document.getElementById('j-h').value);
+    const vM3 = (1/3) * Math.PI * h * (Math.pow(D/2, 2) + (D/2 * d/2) + Math.pow(d/2, 2));
+    const res = document.getElementById('j-objetosc2').value === 'l' ? vM3 * 1000 : vM3;
+    document.getElementById('objetosc-geometria').value = res.toFixed(4);
 }
 
-// ============================================
-// LOGIKA SEKCJI 3: STRUMIEŃ Z MIESZANKĄ GAZÓW
-// ============================================
 function obliczSekcje3() {
-    // 1. Odczytywanie i obsługa suwaka gazów
-    const procentAr = parseInt(document.getElementById('proporcja-gazu').value);
-    const procentO2 = 100 - procentAr;
-    
-    // Aktualizacja etykiety na żywo
-    document.getElementById('gaz-etykieta').innerText = `${procentO2}% O₂ / ${procentAr}% Ar`;
-
-    // 2. Pobieranie Gęstości Stali
-    const gestoscInput = parseFloat(document.getElementById('gestosc3').value);
-    const jGestosc = document.getElementById('j-gestosc3').value;
-
-    if (isNaN(gestoscInput) || gestoscInput <= 0) {
-        document.getElementById('C').value = "";
-        document.getElementById('C_prime').value = "";
-        document.getElementById('Q_prime').value = "";
+    const prAr = parseInt(document.getElementById('proporcja-gazu').value);
+    const prO2 = 100 - prAr;
+    document.getElementById('gaz-etykieta').innerText = `${prO2}% O₂ / ${prAr}% Ar`;
+    const rhoIn = parseFloat(document.getElementById('gestosc3').value);
+    const jRho = document.getElementById('j-gestosc3').value;
+    if (isNaN(rhoIn) || rhoIn <= 0) {
+        document.getElementById('C').value = ""; document.getElementById('C_prime').value = ""; document.getElementById('Q_prime').value = "";
         return;
     }
-
-    const gestoscStaliKgM3 = jGestosc === 'g/cm3' ? gestoscInput * 1000 : gestoscInput;
-
-    // 3. Obliczanie efektywnej Masy Molowej i Gęstości Mieszanki Gazu
-    const xAr = procentAr / 100;
-    const xO2 = procentO2 / 100;
-
-    const masaMolowaMieszanki = (xAr * BAZA_GAZOW['argon'].M) + (xO2 * BAZA_GAZOW['tlen'].M);
-    const gestoscMieszanki = (xAr * BAZA_GAZOW['argon'].rho) + (xO2 * BAZA_GAZOW['tlen'].rho);
-
-    // 4. Obliczanie stałych C i C'
-    const C_prime = Math.pow(M_POWIETRZA, 2) / (RHO_POWIETRZA * RHO_WODY);
-    const C = Math.pow(masaMolowaMieszanki, 2) / (gestoscMieszanki * gestoscStaliKgM3);
-
-    document.getElementById('C_prime').value = C_prime.toFixed(3);
+    const rhoL = jRho === 'g/cm3' ? rhoIn * 1000 : rhoIn;
+    const xAr = prAr / 100; const xO2 = prO2 / 100;
+    const mixM = (xAr * BAZA_GAZOW['argon'].M) + (xO2 * BAZA_GAZOW['tlen'].M);
+    const mixRhoG = (xAr * BAZA_GAZOW['argon'].rho) + (xO2 * BAZA_GAZOW['tlen'].rho);
+    const Cp = Math.pow(M_POWIETRZA, 2) / (RHO_POWIETRZA * RHO_WODY);
+    const C = Math.pow(mixM, 2) / (mixRhoG * rhoL);
+    document.getElementById('C_prime').value = Cp.toFixed(3);
     document.getElementById('C').value = C.toFixed(3);
-
-    // 5. Obliczenia Strumienia (Froude) z ułamkiem skali 1:X
-    const slMianownik = parseFloat(document.getElementById('SL_mianownik').value);
-    const Q_in = parseFloat(document.getElementById('Q').value);
-    
-    if (isNaN(slMianownik) || slMianownik <= 0 || isNaN(Q_in)) {
-        document.getElementById('Q_prime').value = "";
-        return;
+    const slM = parseFloat(document.getElementById('SL_mianownik').value);
+    const Qin = parseFloat(document.getElementById('Q').value);
+    if (isNaN(slM) || slM <= 0 || isNaN(Qin)) {
+        document.getElementById('Q_prime').value = ""; return;
     }
-
-    const SL = 1 / slMianownik;
-    const jQ = document.getElementById('j-Q').value;
-    const jQPrime = document.getElementById('j-Q-prime').value;
-
-    let qM3S = Q_in;
-    if (jQ === 'l/min') qM3S = Q_in / 60000;
-    if (jQ === 'm3/h') qM3S = Q_in / 3600;
-
-    let qPrimeM3S = Math.pow((C_prime / C), -0.5) * Math.pow(SL, 2.5) * qM3S;
-
-    let wynik = qPrimeM3S;
-    if (jQPrime === 'l/min') wynik = qPrimeM3S * 60000;
-    if (jQPrime === 'm3/h') wynik = qPrimeM3S * 3600;
-
-    document.getElementById('Q_prime').value = wynik.toFixed(3);
+    const SL = 1 / slM;
+    const qM3s = document.getElementById('j-Q').value === 'l/min' ? Qin / 60000 : Qin;
+    let qpM3s = Math.pow((Cp / C), -0.5) * Math.pow(SL, 2.5) * qM3s;
+    const res = document.getElementById('j-Q-prime').value === 'l/min' ? qpM3s * 60000 : qpM3s;
+    document.getElementById('Q_prime').value = res.toFixed(3);
 }
 
-// Funkcja zbiorcza do odświeżenia przed eksportem
 function obliczWszystko() {
-    obliczSekcje1();
-    obliczGeometrie();
-    obliczSekcje3();
+    obliczSekcje1(); obliczGeometrie(); obliczSekcje3();
 }
 
 // ============================================
-// MODUŁ RTD
+// MODUŁ RTD I WYKRES
 // ============================================
 let rtdPunkty = [];
 let wykresRTD = null;
 
 function inicjujWykres() {
     if (typeof Chart === 'undefined') return;
+    if (wykresRTD) wykresRTD.destroy();
     const ctx = document.getElementById('rtdChart').getContext('2d');
     wykresRTD = new Chart(ctx, {
         type: 'line',
         data: {
             datasets: [{
-                label: 'Krzywa RTD',
+                label: 'Krzywa retencji RTD',
                 data: rtdPunkty,
                 borderColor: '#9b59b6',
                 backgroundColor: 'rgba(155, 89, 182, 0.2)',
@@ -171,147 +142,96 @@ function inicjujWykres() {
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { type: 'linear', title: { display: true, text: 'Czas [s]' } },
-                y: { title: { display: true, text: 'Stężenie' }, beginAtZero: true }
+                x: { type: 'linear', title: { display: true, text: 'Czas t [s]' } },
+                y: { title: { display: true, text: 'Stężenie C(t)' }, beginAtZero: true }
             }
         }
     });
 }
 
 function dodajPunktRTD() {
-    const czas = parseFloat(document.getElementById('rtd-czas').value);
-    const stezenie = parseFloat(document.getElementById('rtd-stezenie').value);
-
-    if (!isNaN(czas) && !isNaN(stezenie)) {
-        rtdPunkty.push({ x: czas, y: stezenie });
+    const t = parseFloat(document.getElementById('rtd-czas').value);
+    const ct = parseFloat(document.getElementById('rtd-stezenie').value);
+    if (!isNaN(t) && !isNaN(ct)) {
+        rtdPunkty.push({ x: t, y: ct });
         rtdPunkty.sort((a, b) => a.x - b.x); 
         if(wykresRTD) wykresRTD.update();
         document.getElementById('rtd-czas').value = '';
         document.getElementById('rtd-stezenie').value = '';
         document.getElementById('rtd-czas').focus();
-    } else {
-        alert("Wpisz poprawne wartości liczbowe dla czasu i stężenia.");
+        zapiszStan();
     }
 }
 
 function wyczyscRTD() {
-    rtdPunkty.length = 0; 
-    if(wykresRTD) wykresRTD.update();
+    rtdPunkty.length = 0; if(wykresRTD) wykresRTD.update(); zapiszStan();
 }
 
-window.onload = inicjujWykres;
-
 // ============================================
-// EKSPORT I RAPORTY
+// EKSPORTY (PDF, CSV, TEKST)
 // ============================================
 function generujTekst() {
-    obliczWszystko(); 
+    obliczWszystko();
+    const slM = document.getElementById('SL_mianownik').value;
+    let txt = `PROTOKÓŁ EKSPERYMENTALNY - MODELOWANIE FIZYCZNE\n`;
+    txt += `--------------------------------------------------\n`;
+    txt += `SEKCJA 1: Objętość stali (V): ${document.getElementById('objetosc-stali').value} ${document.getElementById('j-objetosc1').value}\n`;
+    txt += `SEKCJA 2: Objętość geometryczna (Vgeo): ${document.getElementById('objetosc-geometria').value} ${document.getElementById('j-objetosc2').value}\n`;
+    txt += `SEKCJA 3: Skala SL: 1:${slM} | Sklad gazu: ${document.getElementById('gaz-etykieta').innerText}\n`;
+    txt += `Stała C: ${document.getElementById('C').value} | Stała C': ${document.getElementById('C_prime').value}\n`;
+    txt += `Przepływ model (Q'): ${document.getElementById('Q_prime').value} ${document.getElementById('j-Q-prime').value}\n`;
+    txt += `SEKCJA 4: Kształtka: ${document.getElementById('typ-ksztaltki').value} | Znacznik: ${document.getElementById('znacznik').value} ml\n`;
+    txt += `--------------------------------------------------\nLiczba punktów RTD: ${rtdPunkty.length}\n`;
     
-    const volGeo = document.getElementById('objetosc-geometria').value || "Brak danych";
-    const unitGeo = document.getElementById('j-objetosc2').value;
-    const Q = document.getElementById('Q').value || "Brak danych";
-    const unitQ = document.getElementById('j-Q').value;
-    const C = document.getElementById('C').value || "Brak danych";
-    const C_prime = document.getElementById('C_prime').value || "Brak danych";
-    
-    const slMianownik = document.getElementById('SL_mianownik').value;
-    const SL = slMianownik ? `1 : ${slMianownik}` : "Brak danych";
-    
-    const gazMix = document.getElementById('gaz-etykieta').innerText;
-    
-    const Q_prime = document.getElementById('Q_prime').value || "Brak obliczen";
-    const unitQPrime = document.getElementById('j-Q-prime').value;
-    const ksztaltka = document.getElementById('typ-ksztaltki').value;
-    const znacznik = document.getElementById('znacznik').value || "Brak danych";
-
-    let raportTekst = `WYNIKI EKSPERYMENTU - MODELOWANIE FIZYCZNE KADZI
---------------------------------------------------
-Zastosowana ksztaltka: ${ksztaltka}
-Objetosc znacznika (KMnO4+NaCl): ${znacznik} ml
-
-Geometria: Objetosc reaktora obliczona: ${volGeo} ${unitGeo}
-Wspolczynnik skali modelu: ${SL}
-Gaz roboczy (mieszanka): ${gazMix}
-Stala reaktora (C): ${C}
-Stala modelu (C'): ${C_prime}
-
-Zalozony strumien gazu dla reaktora (Q): ${Q} ${unitQ}
-OBLICZONY STRUMIEN DLA MODELU (Q'): ${Q_prime} ${unitQPrime}
---------------------------------------------------\nZarejestrowane punkty RTD:\n`;
-
-    if (rtdPunkty.length === 0) {
-        raportTekst += "Brak wprowadzonych punktow pomiarowych.";
-    } else {
-        rtdPunkty.forEach((pkt, i) => {
-            raportTekst += `${i + 1}. Czas: ${pkt.x} s | Stezenie: ${pkt.y}\n`;
-        });
-    }
-
-    const kontener = document.getElementById('raport-container');
-    const poleTekstowe = document.getElementById('raport-text');
-    kontener.classList.remove('hidden');
-    poleTekstowe.value = raportTekst;
+    document.getElementById('raport-container').classList.remove('hidden');
+    document.getElementById('raport-text').value = txt;
 }
 
 function generujPDF() {
     obliczWszystko();
-    if (!window.jspdf) {
-        alert("Blad: Nie udalo sie zaladowac biblioteki do PDF. Uzyj przycisku 'Sprawozdanie Tekstowe'.");
-        return;
-    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("Protokol z cwiczenia laboratoryjnego", 20, 20); 
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold"); doc.text("PROTOKOL BADANIA MODELOWEGO - ANALIZA RTD", 20, 20);
     
-    const uGeo = document.getElementById('j-objetosc2').value;
-    const uQ = document.getElementById('j-Q').value;
-    const uQp = document.getElementById('j-Q-prime').value;
-    
-    const slMianownik = document.getElementById('SL_mianownik').value;
-    const SL = slMianownik ? `1 : ${slMianownik}` : "-";
-    const gazMix = document.getElementById('gaz-etykieta').innerText;
+    doc.setFontSize(10); doc.setFont("helvetica", "normal");
+    let y = 35;
+    const sekcje = [
+        ["1. DANE HUTNICZE", `Masa: ${document.getElementById('masa').value}${document.getElementById('j-masa').value}, Gestosc: ${document.getElementById('gestosc').value}, Obj: ${document.getElementById('objetosc-stali').value}`],
+        ["2. GEOMETRIA KADZI", `Wymiary D/d/h: ${document.getElementById('D').value}/${document.getElementById('d').value}/${document.getElementById('h').value}, Obj Geo: ${document.getElementById('objetosc-geometria').value}`],
+        ["3. PODOBIENSTWO", `Skala 1:${document.getElementById('SL_mianownik').value}, Gaz: ${document.getElementById('gaz-etykieta').innerText}, C/C': ${document.getElementById('C').value}/${document.getElementById('C_prime').value}, Q/Q': ${document.getElementById('Q').value}/${document.getElementById('Q_prime').value}`],
+        ["4. WARUNKI RTD", `Ksztaltka: ${document.getElementById('typ-ksztaltki').value}, Znacznik: ${document.getElementById('znacznik').value}ml`]
+    ];
 
-    doc.text(`Objetosc obliczona z geometrii: ${document.getElementById('objetosc-geometria').value || '-'} ${uGeo}`, 20, 35);
-    doc.text(`Wspolczynnik skali modelu: ${SL}`, 20, 45);
-    doc.text(`Mieszanka gazowa: ${gazMix}`, 20, 55);
-    doc.text(`Stala (C): ${document.getElementById('C').value || '-'}  |  Stala modelu (C'): ${document.getElementById('C_prime').value || '-'}`, 20, 65);
-    doc.text(`Strumien w reaktorze (Q): ${document.getElementById('Q').value || '-'} ${uQ}`, 20, 75);
-    doc.text(`Strumien w modelu (Q'): ${document.getElementById('Q_prime').value || '-'} ${uQp}`, 20, 85);
-    doc.text(`Typ ksztaltki: ${document.getElementById('typ-ksztaltki').value}`, 20, 100);
-    doc.text(`Objetosc znacznika (KMnO4+NaCl): ${document.getElementById('znacznik').value || '-'} ml`, 20, 110);
-    
-    doc.text("Zarejestrowane punkty RTD:", 20, 130);
-    let yPos = 140;
-    rtdPunkty.forEach((pkt, index) => {
-        doc.text(`${index + 1}. Czas: ${pkt.x} s | Stezenie: ${pkt.y}`, 30, yPos);
-        yPos += 10;
-        if(yPos > 280) { doc.addPage(); yPos = 20; }
+    sekcje.forEach(s => {
+        doc.setFont("helvetica", "bold"); doc.text(s[0], 20, y); y += 7;
+        doc.setFont("helvetica", "normal"); doc.text(s[1], 25, y); y += 12;
     });
 
-    doc.save("Protokol_Argonowanie.pdf");
+    doc.setFont("helvetica", "bold"); doc.text("PUNKTY POMIAROWE RTD:", 20, y); y += 8;
+    doc.setFont("helvetica", "normal");
+    rtdPunkty.forEach((p, i) => {
+        doc.text(`${i+1}. t: ${p.x}s | C(t): ${p.y}`, 25, y); y += 7;
+        if(y > 280) { doc.addPage(); y = 20; }
+    });
+    doc.save("Protokol_Kompletny_RTD.pdf");
 }
 
 function generujCSV() {
-    if (rtdPunkty.length === 0) {
-        alert("Brak danych w tabeli punktów do wyeksportowania!");
-        return;
-    }
-    let csvContent = "data:text/csv;charset=utf-8,Czas_s;Stezenie\n";
-    rtdPunkty.forEach(function(rowArray) {
-        let row = rowArray.x + ";" + rowArray.y;
-        csvContent += row + "\n";
-    });
-    var encodedUri = encodeURI(csvContent);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Dane_Krzywej_RTD.csv");
-    document.body.appendChild(link);
+    obliczWszystko();
+    let csv = "data:text/csv;charset=utf-8,Sekcja;Parametr;Wartosc;Jednostka\n";
+    csv += `1;Masa;${document.getElementById('masa').value};${document.getElementById('j-masa').value}\n`;
+    csv += `1;Gestosc;${document.getElementById('gestosc').value};${document.getElementById('j-gestosc').value}\n`;
+    csv += `2;Srednica D;${document.getElementById('D').value};${document.getElementById('j-D').value}\n`;
+    csv += `3;Skala;1:${document.getElementById('SL_mianownik').value};-\n`;
+    csv += `3;Gaz;${document.getElementById('gaz-etykieta').innerText};-\n`;
+    csv += `3;Q_reaktor;${document.getElementById('Q').value};${document.getElementById('j-Q').value}\n`;
+    csv += `3;Q_model;${document.getElementById('Q_prime').value};${document.getElementById('j-Q-prime').value}\n`;
+    csv += `4;Ksztaltka;${document.getElementById('typ-ksztaltki').value};-\n`;
+    csv += `\nDANE_RTD;Czas[s];Stezenie;-\n`;
+    rtdPunkty.forEach(p => csv += `RTD;${p.x};${p.y};-\n`);
+    
+    const link = document.createElement("a");
+    link.href = encodeURI(csv);
+    link.download = "Eksperyment_Kompletny.csv";
     link.click();
-    document.body.removeChild(link);
 }

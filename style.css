@@ -62,13 +62,13 @@ h1 {
     margin-bottom: 15px; 
 }
 
-/* Kolory paneli */
+
 .section-blue { border-top-color: #3498db; }
 .section-orange { border-top-color: #e67e22; }
 .section-green { border-top-color: #2ecc71; }
 .section-purple { border-top-color: #9b59b6; }
 
-/* Układ okienek formularza */
+
 .input-group { 
     display: flex; 
     align-items: center; 
@@ -88,7 +88,7 @@ h1 {
     border-radius: 4px; 
 }
 
-/* Nowy styl dla list rozwijanych z jednostkami */
+
 .unit-select { 
     width: 80px; 
     text-align: center; 
@@ -117,7 +117,7 @@ h1 {
     margin-left: 10px; 
 }
 
-/* Wyróżnienia wyników */
+
 .result-group input { 
     background-color: #e8ecef; 
     font-weight: bold; 
@@ -132,7 +132,7 @@ h1 {
     font-size: 16px; 
 }
 
-/* Przycisk tylko dla Sekcji 1 */
+
 .calc-btn-small {
     width: 100%;
     margin-top: 10px;
@@ -149,7 +149,7 @@ h1 {
     background-color: #2980b9; 
 }
 
-/* Kontrolki wykresu RTD */
+
 .add-point-group { 
     display: flex; 
     gap: 10px; 
@@ -194,7 +194,7 @@ h1 {
     margin-top: 20px; 
 }
 
-/* Dolne przyciski eksportu */
+
 .buttons-container { 
     display: flex; 
     gap: 10px; 
@@ -227,10 +227,10 @@ h1 {
 .export-csv-btn { background-color: #27ae60; } 
 .export-csv-btn:hover { background-color: #219150; }
 
-/* Ukrywanie elementów domyślnie */
+
 .hidden { display: none; }
 
-/* Wygląd sprawozdania tekstowego na dole */
+
 #raport-container { 
     margin-top: 25px; 
     padding: 15px; 
@@ -256,7 +256,7 @@ textarea {
     resize: vertical; 
 }
 
-/* Responsywność dla urządzeń mobilnych */
+
 @media (max-width: 768px) {
     .grid-layout { 
         grid-template-columns: 1fr; 
